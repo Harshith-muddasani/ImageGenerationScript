@@ -19,11 +19,49 @@ class ReplicateGenerator {
             height = 1024,
             num_inference_steps = 50,
             guidance_scale = 7.5,
-            num_outputs = 1
+            num_outputs = 1,
+            referenceImages = [],
+            imageToImage = false,
+            strength = 0.7,
+            referenceType = 'style'
         } = options;
 
         if (!prompt) {
             throw new Error('Prompt is required');
+        }
+
+        // Prepare input parameters
+        let inputParams = {
+            prompt,
+            width,
+            height,
+            num_inference_steps,
+            guidance_scale,
+            num_outputs
+        };
+
+        // Use img2img model if reference images are provided
+        let selectedModel = model;
+        const isImageToImage = imageToImage && referenceImages.length > 0;
+
+        if (isImageToImage) {
+            // Switch to an img2img capable model
+            selectedModel = 'stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf';
+            
+            // Use the first reference image
+            const baseImage = referenceImages[0];
+            inputParams.image = baseImage.dataUrl;
+            inputParams.prompt_strength = strength;
+
+            // Adjust parameters based on reference type
+            if (referenceType === 'style') {
+                inputParams.prompt_strength = strength * 0.6; // Lighter influence for style
+                inputParams.guidance_scale = Math.min(guidance_scale * 1.3, 20);
+            } else if (referenceType === 'transformation') {
+                inputParams.prompt_strength = strength;
+            } else if (referenceType === 'composition') {
+                inputParams.prompt_strength = strength * 0.8;
+            }
         }
 
         try {
@@ -31,15 +69,8 @@ class ReplicateGenerator {
             const predictionResponse = await axios.post(
                 `${this.baseUrl}/predictions`,
                 {
-                    version: model.includes(':') ? model.split(':')[1] : model,
-                    input: {
-                        prompt,
-                        width,
-                        height,
-                        num_inference_steps,
-                        guidance_scale,
-                        num_outputs
-                    }
+                    version: selectedModel.includes(':') ? selectedModel.split(':')[1] : selectedModel,
+                    input: inputParams
                 },
                 {
                     headers: {

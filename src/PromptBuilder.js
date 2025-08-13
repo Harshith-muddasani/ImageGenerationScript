@@ -155,6 +155,121 @@ class PromptBuilder {
         return variations;
     }
 
+    enhancePrompt(originalPrompt, enhancementType = 'auto') {
+        if (!originalPrompt || originalPrompt.trim().length === 0) {
+            throw new Error("Original prompt cannot be empty");
+        }
+
+        const enhancementStrategies = {
+            auto: this.autoEnhancePrompt.bind(this),
+            fashion: this.fashionEnhancePrompt.bind(this),
+            professional: this.professionalEnhancePrompt.bind(this),
+            artistic: this.artisticEnhancePrompt.bind(this),
+            detailed: this.detailedEnhancePrompt.bind(this)
+        };
+
+        const enhancer = enhancementStrategies[enhancementType] || enhancementStrategies.auto;
+        return enhancer(originalPrompt);
+    }
+
+    autoEnhancePrompt(prompt) {
+        const enhancements = [
+            "high quality photography",
+            "professional lighting",
+            "detailed textures",
+            "sharp focus",
+            "8k resolution"
+        ];
+
+        // Check if prompt already has quality indicators
+        const hasQuality = /high quality|professional|8k|4k|detailed|sharp/i.test(prompt);
+        const hasLighting = /lighting|light|lit/i.test(prompt);
+        
+        let enhanced = prompt;
+        
+        if (!hasQuality) {
+            enhanced += ", high quality photography, detailed textures";
+        }
+        
+        if (!hasLighting) {
+            enhanced += ", professional lighting, sharp focus";
+        }
+        
+        enhanced += ", photorealistic, 8k resolution";
+        
+        return this.cleanPrompt(enhanced);
+    }
+
+    fashionEnhancePrompt(prompt) {
+        const fashionTerms = [
+            "fashion photography",
+            "studio lighting",
+            "professional model pose",
+            "high-end fashion",
+            "elegant composition",
+            "designer clothing",
+            "fashion magazine style"
+        ];
+
+        let enhanced = prompt;
+        
+        if (!/fashion|model|clothing|wear/i.test(prompt)) {
+            enhanced = `Fashion photography: ${enhanced}`;
+        }
+        
+        enhanced += ", professional studio lighting, high-end fashion photography";
+        enhanced += ", elegant pose, designer aesthetic, magazine quality";
+        enhanced += ", detailed fabric textures, professional color grading";
+        
+        return this.cleanPrompt(enhanced);
+    }
+
+    professionalEnhancePrompt(prompt) {
+        const professionalTerms = [
+            "professional photography",
+            "commercial quality",
+            "studio setup",
+            "perfect lighting",
+            "crisp details",
+            "professional composition"
+        ];
+
+        let enhanced = prompt + ", professional commercial photography";
+        enhanced += ", studio quality lighting, perfect composition";
+        enhanced += ", high-end production value, crisp sharp details";
+        enhanced += ", professional color correction, commercial grade";
+        
+        return this.cleanPrompt(enhanced);
+    }
+
+    artisticEnhancePrompt(prompt) {
+        const artisticTerms = [
+            "artistic photography",
+            "creative composition",
+            "artistic lighting",
+            "fine art style",
+            "gallery quality",
+            "creative vision"
+        ];
+
+        let enhanced = prompt + ", artistic photography, creative composition";
+        enhanced += ", dramatic lighting, fine art style";
+        enhanced += ", gallery quality, artistic vision, creative framing";
+        enhanced += ", sophisticated color palette, artistic excellence";
+        
+        return this.cleanPrompt(enhanced);
+    }
+
+    detailedEnhancePrompt(prompt) {
+        let enhanced = prompt + ", ultra-detailed, hyper-realistic";
+        enhanced += ", intricate details, perfect textures, fine craftsmanship";
+        enhanced += ", meticulous attention to detail, precise rendering";
+        enhanced += ", crystal clear, ultra-sharp focus, professional grade";
+        enhanced += ", museum quality, masterpiece level detail";
+        
+        return this.cleanPrompt(enhanced);
+    }
+
     validatePrompt(prompt) {
         const issues = [];
         
